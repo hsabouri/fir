@@ -1,5 +1,5 @@
 [package]
-name = "decision_tree"
+name = "fir"
 description = "Tiny decision tree library"
 version = "0.1.0"
 authors = ["Hugo Sabourin <hsabouri@student.42.fr>"]
