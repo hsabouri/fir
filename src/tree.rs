@@ -1,38 +1,38 @@
-use nodes::{CloseDecisionNode, OpenDecisionNode, ActionNode};
+use node::{CloseDecisionNode, OpenDecisionNode, ActionNode};
 
-pub enum Node<T> {
+pub enum Tree<T> {
     CloseDecision(Box<CloseDecisionNode<T>>),
     OpenDecision(Box<OpenDecisionNode<T>>),
     Action(Box<ActionNode<T>>),
     Finished,
 }
 
-impl<T> Node<T> {
-    pub fn close_decision(condition: fn(T) -> (T, bool), if_true: Node<T>, if_false: Node<T>) -> Node<T> {
-        Node::CloseDecision::<T>(
+impl<T> Tree<T> {
+    pub fn close_decision(condition: fn(T) -> (T, bool), if_true: Tree<T>, if_false: Tree<T>) -> Tree<T> {
+        Tree::CloseDecision::<T>(
             CloseDecisionNode::new_boxed(condition, if_true, if_false)
         )
     }
 
-    pub fn open_decision(reducer: fn(T) -> (T, Node<T>)) -> Node<T> {
-        Node::OpenDecision::<T>(
+    pub fn open_decision(reducer: fn(T) -> (T, Tree<T>)) -> Tree<T> {
+        Tree::OpenDecision::<T>(
             OpenDecisionNode::new_boxed(reducer)
         )
     }
 
-    pub fn action(f: fn(T) -> T, next: Node<T>) -> Node<T> {
-        Node::Action::<T>(
+    pub fn action(f: fn(T) -> T, next: Tree<T>) -> Tree<T> {
+        Tree::Action::<T>(
             ActionNode::new_boxed(f, next)
         )
     }
 
-    pub fn finished() -> Node<T> {
-        Node::Finished::<T>
+    pub fn finished() -> Tree<T> {
+        Tree::Finished::<T>
     }
 
     pub fn explore(self, state: T) -> T {
         match self {
-            Node::CloseDecision(node) => {
+            Tree::CloseDecision(node) => {
                 let (state, decision) = (node.condition)(state);
 
                 match decision {
@@ -40,17 +40,17 @@ impl<T> Node<T> {
                     false => node.if_false.explore(state)
                 }
             },
-            Node::OpenDecision(node) => {
+            Tree::OpenDecision(node) => {
                 let (state, next) = (node.condition)(state);
 
                 next.explore(state)
             },
-            Node::Action(node) => {
+            Tree::Action(node) => {
                 let state = (node.f)(state);
                 
                 node.next.explore(state)
             },
-            Node::Finished => state
+            Tree::Finished => state
         }
     }
 }
